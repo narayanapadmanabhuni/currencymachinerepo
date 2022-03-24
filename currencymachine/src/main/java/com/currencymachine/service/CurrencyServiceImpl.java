@@ -1,6 +1,5 @@
 package com.currencymachine.service;
 
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedSet;
@@ -12,12 +11,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.currencymachine.dto.CurrencyHolder;
+import com.currencymachine.exception.BadDataException;
 import com.currencymachine.exception.InSufficientFundsException;
 
 @Service
 public class CurrencyServiceImpl implements CurrencyService {
 	@Autowired
 	private CurrencyHolder currencyHolder;
+	
 	@Autowired
 	@Qualifier("currencyServiceLock")
 	private Lock lock;
@@ -31,6 +32,9 @@ public class CurrencyServiceImpl implements CurrencyService {
 		double balance = 0;
 
 		balance = currencyHolder.getWalletBalance();
+		if (bill <= 0) {
+			throw new BadDataException("bill value should be a positive non-zero integer value");
+		}
 		if (balance < bill) {
 			throw new InSufficientFundsException("amount is not available in wallet");
 		}
@@ -52,7 +56,7 @@ public class CurrencyServiceImpl implements CurrencyService {
 			}
 			coinsRequired = (int) (bill / denomination);
 			coinsAvailable = currencyHolder.getAvailableCoins(denomination);
-			if (coinsRequired > 0) {
+			if (coinsRequired > 0 && coinsAvailable > 0) {
 				if (coinsAvailable < coinsRequired) {
 					bill = (bill - (int) (denomination * coinsAvailable));
 					currencyHolder.updateWallet(denomination, 0);

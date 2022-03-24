@@ -12,12 +12,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.currencymachine.dto.ErrorInfo;
+import com.currencymachine.exception.BadDataException;
 import com.currencymachine.exception.InSufficientFundsException;
 import com.currencymachine.service.CurrencyService;
 
 @RestController
 @RequestMapping("/currency")
-public class CurrencyApiService {
+public class CurrencyMachineApiService {
 	@Autowired
 	private CurrencyService currencyService;
 
@@ -33,5 +34,14 @@ public class CurrencyApiService {
 		errorInfo.setErrorCode(1000);
 		errorInfo.setErrorMessage("insufficient funds");
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorInfo);
+	}
+
+	@ExceptionHandler(BadDataException.class)
+	public ResponseEntity<ErrorInfo> mapBadDataException(BadDataException e) {
+		ErrorInfo errorInfo = null;
+		errorInfo = new ErrorInfo();
+		errorInfo.setErrorCode(1001);
+		errorInfo.setErrorMessage("invalid bill input");
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorInfo);
 	}
 }
